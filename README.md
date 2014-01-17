@@ -1,0 +1,4 @@
+goes
+====
+
+Go news gatherer
