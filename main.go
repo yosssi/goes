@@ -30,11 +30,12 @@ type Url struct {
 }
 
 type Link struct {
-	Id        bson.ObjectId `bson:"_id"`
-	Url       string        `bson:"Url"`
-	Title     string        `bson:"Title"`
-	CreatedAt time.Time     `bson:"CreatedAt"`
-	UpdatedAt time.Time     `bson:"UpdatedAt"`
+	Id           bson.ObjectId `bson:"_id"`
+	Url          string        `bson:"Url"`
+	Title        string        `bson:"Title"`
+	ErrorMessage string        `bson:"ErrorMessage"`
+	CreatedAt    time.Time     `bson:"CreatedAt"`
+	UpdatedAt    time.Time     `bson:"UpdatedAt"`
 }
 
 var (
@@ -253,7 +254,7 @@ func insertLink(session *mgo.Session, url string) {
 	if err != nil {
 		if err.Error() == mgo.ErrNotFound.Error() {
 			now := time.Now()
-			link = Link{Id: bson.NewObjectId(), Url: url, Title: "", CreatedAt: now, UpdatedAt: now}
+			link = Link{Id: bson.NewObjectId(), Url: url, Title: "", ErrorMessage: "", CreatedAt: now, UpdatedAt: now}
 			err = c.Insert(&link)
 			if err != nil {
 				panic(err)
@@ -277,15 +278,15 @@ func setTitles() {
 	session.SetMode(mgo.Monotonic, true)
 	c := session.DB(mgoYaml["Db"]).C("links")
 	links := make([]Link, 0)
-	err = c.Find(bson.M{"Title": ""}).All(&links)
+	err = c.Find(bson.M{"Title": "", "ErrorMessage": ""}).All(&links)
 	if err != nil {
 		panic(err)
 	}
 	for _, link := range links {
 		id := link.Id
 		url := link.Url
-		title := getTitle(url)
-		err := c.UpdateId(id, bson.M{"$set": bson.M{"Title": title, "UpdatedAt": time.Now()}})
+		title, errorMessage := getTitle(url)
+		err := c.UpdateId(id, bson.M{"$set": bson.M{"Title": title, "ErrorMessage": errorMessage, "UpdatedAt": time.Now()}})
 		if err != nil {
 			panic(err)
 		}
@@ -294,19 +295,20 @@ func setTitles() {
 	logger.Info("setTitles ends.")
 }
 
-func getTitle(url string) string {
+func getTitle(url string) (string, string) {
 	logger.Info("Get title.", url)
 	title := ""
 	doc, err := goquery.NewDocument(url)
 	if err != nil {
-		logger.Error(err.Error())
-		return ""
+		errorMessage := err.Error()
+		logger.Error(errorMessage)
+		return "", errorMessage
 	}
 	title = strings.Replace(strings.Replace(strings.Replace(strings.TrimSpace(doc.Find("title").Text()), "\r\n", " ", -1), "\r", " ", -1), "\n", " ", -1)
 	if title == "" {
 		title = url
 	}
-	return title
+	return title, ""
 }
 
 func sleep() {
