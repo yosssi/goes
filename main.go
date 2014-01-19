@@ -313,6 +313,6 @@ func getTitle(url string) (string, string) {
 
 func sleep() {
 	logger.Info("sleep starts.")
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 30)
 	logger.Info("sleep ends.")
 }
