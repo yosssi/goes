@@ -1,49 +1,49 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"time"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/mrjones/oauth"
 	"github.com/yosssi/goes/consts"
 	"github.com/yosssi/gologger"
 	"github.com/yosssi/goutils"
-	"github.com/mrjones/oauth"
 	"io/ioutil"
-	"launchpad.net/goyaml"
-	"encoding/json"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"launchpad.net/goyaml"
 	"strings"
+	"time"
 )
 
 type Twitter struct {
-	Consumer *oauth.Consumer
+	Consumer    *oauth.Consumer
 	AccessToken *oauth.AccessToken
 }
 
 type Url struct {
-	Id bson.ObjectId `bson:"_id"`
-	RawUrl string `bson:"RawUrl"`
-	ExpandedUrl string `bson:"ExpandedUrl"`
-	CreatedAt time.Time `bson:"CreatedAt"`
-	UpdatedAt time.Time `bson:"UpdatedAt"`
+	Id          bson.ObjectId `bson:"_id"`
+	RawUrl      string        `bson:"RawUrl"`
+	ExpandedUrl string        `bson:"ExpandedUrl"`
+	CreatedAt   time.Time     `bson:"CreatedAt"`
+	UpdatedAt   time.Time     `bson:"UpdatedAt"`
 }
 
 type Link struct {
-	Id bson.ObjectId `bson:"_id"`
-	Url string `bson:"Url"`
-	Title string `bson:"Title"`
-	CreatedAt time.Time `bson:"CreatedAt"`
-	UpdatedAt time.Time `bson:"UpdatedAt"`
+	Id        bson.ObjectId `bson:"_id"`
+	Url       string        `bson:"Url"`
+	Title     string        `bson:"Title"`
+	CreatedAt time.Time     `bson:"CreatedAt"`
+	UpdatedAt time.Time     `bson:"UpdatedAt"`
 }
 
 var (
-	loggerYaml map[string]string = make(map[string]string)
+	loggerYaml  map[string]string = make(map[string]string)
 	twitterYaml map[string]string = make(map[string]string)
-	mgoYaml map[string]string = make(map[string]string)
-	logger gologger.Logger
-	twitter Twitter
-	urls map[string]string
+	mgoYaml     map[string]string = make(map[string]string)
+	logger      gologger.Logger
+	twitter     Twitter
+	urls        map[string]string
 )
 
 func (t *Twitter) Get(url string, params map[string]string) (interface{}, error) {
@@ -92,7 +92,7 @@ func now() string {
 	return time.Now().Format(consts.TimeFormatLayout)
 }
 
-func print(s... interface{}) {
+func print(s ...interface{}) {
 	fmt.Print(now(), " - ")
 	fmt.Println(s...)
 }
@@ -124,9 +124,9 @@ func setTwitter() {
 		twitterYaml["ConsumerKey"],
 		twitterYaml["ConsumerSecret"],
 		oauth.ServiceProvider{
-			RequestTokenUrl: consts.RequestTokenUrl,
+			RequestTokenUrl:   consts.RequestTokenUrl,
 			AuthorizeTokenUrl: consts.AuthorizeTokenUrl,
-			AccessTokenUrl: consts.AccessTokenUrl,
+			AccessTokenUrl:    consts.AccessTokenUrl,
 		},
 	)
 	twitter.AccessToken = &oauth.AccessToken{twitterYaml["AccessToken"], twitterYaml["AccessTokenSecret"], nil}
@@ -156,7 +156,7 @@ func execSearch(params map[string]string) {
 			data, _ := val.([]interface{})
 			for _, tweet := range data {
 				tweetUrls := tweet.(map[string]interface{})["entities"].(map[string]interface{})["urls"].([]interface{})
-				if(len(tweetUrls) > 0){
+				if len(tweetUrls) > 0 {
 					for _, url := range tweetUrls {
 						setUrls(url.(map[string]interface{})["expanded_url"].(string))
 					}
@@ -213,7 +213,6 @@ func insertUrls() {
 	}
 	logger.Info("insertUrls end.")
 }
-
 
 func setExpandedUrls() {
 	logger.Info("setExpandedUrls start.")
