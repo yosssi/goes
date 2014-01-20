@@ -150,7 +150,7 @@ func execSearch(params map[string]string) {
 		params,
 	)
 	if err != nil {
-		logger.Error(err)
+		return
 	}
 	for key, val := range res.(map[string]interface{}) {
 		if key == "statuses" {
@@ -313,6 +313,6 @@ func getTitle(url string) (string, string) {
 
 func sleep() {
 	logger.Info("sleep starts.")
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 60)
 	logger.Info("sleep ends.")
 }
